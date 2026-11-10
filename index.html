@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kairos 提案 | 生成AI SNS自動投稿パイプライン構築</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0E1330;
+    --navy-mid:#1B2250;
+    --navy-soft:#262C5E;
+    --violet:#6C4CF0;
+    --mint:#37D6B0;
+    --coral:#FF6F7C;
+    --off-white:#F3F2FA;
+    --gray-text:#B9BEDC;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--navy-deep);
+    color:var(--off-white);
+    font-family:'Noto Sans JP', sans-serif;
+    line-height:1.8;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{
+    font-family:'Zen Kaku Gothic New','Space Grotesk', sans-serif;
+    font-weight:900;
+    letter-spacing:0.02em;
+  }
+  .en{
+    font-family:'Space Grotesk', sans-serif;
+  }
+  a{color:inherit; text-decoration:none;}
+  .container{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+  section{
+    position:relative;
+    padding:110px 0;
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    background:
+      radial-gradient(ellipse at 15% 20%, rgba(108,76,240,0.35), transparent 55%),
+      radial-gradient(ellipse at 85% 75%, rgba(55,214,176,0.22), transparent 55%),
+      linear-gradient(160deg, var(--navy-deep) 0%, var(--navy-mid) 60%, #141A3D 100%);
+    overflow:hidden;
+    padding:140px 0 100px;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(circle at 70% 40%, black, transparent 70%);
+    pointer-events:none;
+  }
+  .node{
+    position:absolute;
+    border-radius:50%;
+    background:var(--mint);
+    box-shadow:0 0 24px rgba(55,214,176,0.6);
+    animation:pulse 3.2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{transform:scale(1); opacity:0.85;}
+    50%{transform:scale(1.4); opacity:1;}
+  }
+  .n1{width:10px;height:10px; top:18%; right:20%; animation-delay:0s;}
+  .n2{width:7px;height:7px; top:62%; right:12%; background:var(--coral); box-shadow:0 0 20px rgba(255,111,124,0.6); animation-delay:0.8s;}
+  .n3{width:9px;height:9px; top:40%; right:32%; background:var(--violet); box-shadow:0 0 20px rgba(108,76,240,0.7); animation-delay:1.5s;}
+  .n4{width:6px;height:6px; top:78%; right:28%; animation-delay:2.1s;}
+
+  .hero-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    letter-spacing:0.14em;
+    color:var(--mint);
+    border:1px solid rgba(55,214,176,0.4);
+    padding:7px 16px;
+    border-radius:999px;
+    margin-bottom:28px;
+    background:rgba(55,214,176,0.07);
+  }
+  .hero-tag::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--mint);
+    box-shadow:0 0 8px var(--mint);
+  }
+  .hero h1{
+    font-size:clamp(32px,5.2vw,58px);
+    line-height:1.45;
+    max-width:760px;
+    color:#fff;
+  }
+  .hero h1 .accent{
+    background:linear-gradient(90deg, var(--mint), var(--violet));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p.sub{
+    margin-top:26px;
+    max-width:560px;
+    font-size:16px;
+    color:var(--gray-text);
+  }
+  .hero-foot{
+    margin-top:46px;
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:var(--gray-text);
+  }
+  .hero-foot span{display:block; font-family:'Space Grotesk',sans-serif; font-size:20px; color:#fff; margin-bottom:4px;}
+
+  /* ===== SECTION HEADER ===== */
+  .sec-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    letter-spacing:0.22em;
+    color:var(--mint);
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .sec-title{
+    font-size:clamp(24px,3.4vw,36px);
+    color:#fff;
+    margin-bottom:20px;
+  }
+  .sec-desc{
+    color:var(--gray-text);
+    max-width:640px;
+    font-size:15.5px;
+  }
+
+  /* ===== UNDERSTANDING ===== */
+  .understand{
+    background:var(--navy-mid);
+    border-top:1px solid rgba(255,255,255,0.06);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .quote-block{
+    position:relative;
+    background:linear-gradient(135deg, rgba(108,76,240,0.14), rgba(55,214,176,0.06));
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px;
+    padding:36px 40px;
+    margin:34px 0 46px;
+  }
+  .quote-block::before{
+    content:"“";
+    position:absolute;
+    top:-6px; left:20px;
+    font-size:70px;
+    font-family:'Space Grotesk', serif;
+    color:var(--violet);
+    opacity:0.5;
+  }
+  .quote-block p{
+    font-size:17px;
+    color:#EDEBFA;
+    position:relative;
+    z-index:1;
+  }
+  .points-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+    margin-top:10px;
+  }
+  .point{
+    display:flex;
+    gap:14px;
+    padding:18px 20px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:12px;
+  }
+  .point .num{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    color:var(--coral);
+    font-size:14px;
+    min-width:26px;
+  }
+  .point p{font-size:14.5px; color:var(--gray-text);}
+
+  /* ===== FLOW VISUAL ===== */
+  .flow-wrap{
+    margin-top:60px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .flow-step{
+    flex:1;
+    min-width:130px;
+    text-align:center;
+    padding:22px 12px;
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;
+    position:relative;
+  }
+  .flow-step .icon{
+    width:42px;height:42px;
+    margin:0 auto 14px;
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:#0E1330;
+  }
+  .flow-step:nth-child(1) .icon{background:var(--mint);}
+  .flow-step:nth-child(3) .icon{background:var(--violet); color:#fff;}
+  .flow-step:nth-child(5) .icon{background:var(--coral); color:#0E1330;}
+  .flow-step:nth-child(7) .icon{background:#fff;}
+  .flow-step h4{font-size:13.5px; color:#fff; font-family:'Noto Sans JP';font-weight:700;}
+  .flow-step span{display:block; font-size:11.5px; color:var(--gray-text); margin-top:6px;}
+  .flow-arrow{
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--gray-text);
+    font-size:18px;
+    opacity:0.6;
+  }
+
+  /* ===== VALUE CARDS ===== */
+  .value-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px;
+    margin-top:50px;
+  }
+  .vcard{
+    background:linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:16px;
+    padding:30px 26px;
+    transition:transform .35s ease, border-color .35s ease;
+  }
+  .vcard:hover{
+    transform:translateY(-6px);
+    border-color:rgba(55,214,176,0.5);
+  }
+  .vcard .idx{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    color:var(--mint);
+    letter-spacing:0.1em;
+    margin-bottom:16px;
+  }
+  .vcard h3{
+    font-size:18px;
+    color:#fff;
+    margin-bottom:12px;
+    font-weight:700;
+  }
+  .vcard p{
+    font-size:14px;
+    color:var(--gray-text);
+  }
+  .vcard.wide{grid-column:span 1;}
+
+  /* ===== SCHEDULE ===== */
+  .schedule{
+    background:var(--navy-mid);
+    border-top:1px solid rgba(255,255,255,0.06);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .timeline{
+    position:relative;
+    margin-top:54px;
+    padding-left:4px;
+  }
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:19px; top:6px; bottom:6px;
+    width:2px;
+    background:linear-gradient(180deg, var(--mint), var(--violet), var(--coral));
+    opacity:0.5;
+  }
+  .t-item{
+    position:relative;
+    padding-left:56px;
+    margin-bottom:40px;
+  }
+  .t-item:last-child{margin-bottom:0;}
+  .t-dot{
+    position:absolute;
+    left:10px; top:2px;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--navy-deep);
+    border:2px solid var(--mint);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .t-dot::after{
+    content:"";
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--mint);
+  }
+  .t-item:nth-child(2) .t-dot{border-color:var(--violet);}
+  .t-item:nth-child(2) .t-dot::after{background:var(--violet);}
+  .t-item:nth-child(3) .t-dot{border-color:var(--coral);}
+  .t-item:nth-child(3) .t-dot::after{background:var(--coral);}
+  .t-item:nth-child(4) .t-dot{border-color:#fff;}
+  .t-item:nth-child(4) .t-dot::after{background:#fff;}
+  .t-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .t-head .phase{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    letter-spacing:0.12em;
+    color:var(--gray-text);
+  }
+  .t-head h4{font-size:17px; color:#fff;}
+  .t-item p{font-size:14px; color:var(--gray-text); max-width:560px;}
+
+  /* ===== CLOSING ===== */
+  .closing{
+    text-align:center;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(108,76,240,0.3), transparent 60%),
+      linear-gradient(180deg, var(--navy-deep), #0a0e24);
+  }
+  .closing h2{
+    font-size:clamp(26px,4vw,40px);
+    color:#fff;
+    max-width:720px;
+    margin:0 auto 20px;
+  }
+  .closing p.lead{
+    color:var(--gray-text);
+    max-width:520px;
+    margin:0 auto 42px;
+    font-size:15px;
+  }
+  .cta-btn{
+    display:inline-block;
+    background:linear-gradient(90deg, var(--mint), var(--violet));
+    color:#0E1330;
+    font-weight:700;
+    padding:18px 46px;
+    border-radius:999px;
+    font-size:15.5px;
+    letter-spacing:0.02em;
+    box-shadow:0 10px 30px rgba(108,76,240,0.35);
+    transition:transform .3s ease;
+  }
+  .cta-btn:hover{transform:translateY(-3px);}
+  .closing-sub{
+    margin-top:28px;
+    font-size:13px;
+    color:var(--gray-text);
+  }
+  footer{
+    text-align:center;
+    padding:30px 0;
+    font-size:12px;
+    color:#6a6f99;
+    background:#0a0e24;
+  }
+
+  @media (max-width:860px){
+    .points-grid{grid-template-columns:1fr;}
+    .value-grid{grid-template-columns:repeat(2,1fr);}
+    .flow-wrap{justify-content:flex-start;}
+    .flow-arrow{display:none;}
+  }
+  @media (max-width:560px){
+    section{padding:80px 0;}
+    .value-grid{grid-template-columns:1fr;}
+    .quote-block{padding:26px 22px;}
+    .hero{padding-top:120px;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <span class="node n1"></span>
+  <span class="node n2"></span>
+  <span class="node n3"></span>
+  <span class="node n4"></span>
+  <div class="container">
+    <div class="hero-tag en">PROPOSAL FROM KAIROS</div>
+    <h1>原稿も、画像も、投稿も。<br>人の手を離れても、<span class="accent">発信は止まらない。</span></h1>
+    <p class="sub">hmllp_柳澤研様が運営するWebメディアの資産を、生成AIが読み解き、SNSごとに最適な声へと変換する。Kairosは、その仕組みそのものをご提案します。</p>
+    <div class="hero-foot">
+      <div><span class="en">01</span>記事・情報の自動読み取り</div>
+      <div><span class="en">02</span>AIによる文章・画像生成</div>
+      <div><span class="en">03</span>複数SNSへの自動配信</div>
+    </div>
+  </div>
+</section>
+
+<section class="understand">
+  <div class="container">
+    <div class="sec-label en">UNDERSTANDING</div>
+    <h2 class="sec-title">この募集の本質は、<br>「自動化」ではなく「設計」にある</h2>
+    <p class="sec-desc">単発のBotではなく、将来複数のクライアントへ横展開できる土台づくり。そのご意図を、私たちはこう読み解いています。</p>
+
+    <div class="quote-block">
+      <p>最初から完璧な全自動を目指すのではなく、まず実用に耐える最小構成を動かし、運用しながら機能を積み上げていく。そして将来的には、他社のアカウント運用にも転用できる"仕組みの商品化"を見据えている — そう理解しています。</p>
+    </div>
+
+    <div class="points-grid">
+      <div class="point"><span class="num en">01</span><p>記事・サービス情報からSNSごとに最適化された文章と画像を自動生成する必要がある</p></div>
+      <div class="point"><span class="num en">02</span><p>Instagram／Facebookの仕様差分（カルーセル・画像比率・文字数）を吸収する設計が要る</p></div>
+      <div class="point"><span class="num en">03</span><p>承認フロー・予約投稿・複数アカウント管理など、運用に耐える基盤が必要</p></div>
+      <div class="point"><span class="num en">04</span><p>API制限・規約遵守を前提に、運用コストを抑えつつ拡張できる構成が求められる</p></div>
+    </div>
+
+    <div class="flow-wrap">
+      <div class="flow-step"><div class="icon en">TXT</div><h4>記事・情報</h4><span>Webメディア / URL</span></div>
+      <div class="flow-arrow en">→</div>
+      <div class="flow-step"><div class="icon en">AI</div><h4>文章生成</h4><span>GPT / Claude / Gemini</span></div>
+      <div class="flow-arrow en">→</div>
+      <div class="flow-step"><div class="icon en">IMG</div><h4>画像生成</h4><span>SNS別サイズ最適化</span></div>
+      <div class="flow-arrow en">→</div>
+      <div class="flow-step"><div class="icon en">OK</div><h4>承認・予約</h4><span>確認フロー / スケジュール</span></div>
+      <div class="flow-arrow en">→</div>
+      <div class="flow-step"><div class="icon en">SNS</div><h4>自動投稿</h4><span>Instagram / Facebook</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="values">
+  <div class="container">
+    <div class="sec-label en">WHAT KAIROS BRINGS</div>
+    <h2 class="sec-title">Kairosがご提供できる価値</h2>
+    <p class="sec-desc">ツールありきではなく、「運用し続けられる仕組み」を軸に設計します。</p>
+
+    <div class="value-grid">
+      <div class="vcard">
+        <div class="idx en">VALUE / 01</div>
+        <h3>生成AIパイプライン設計</h3>
+        <p>記事の要約・ハッシュタグ抽出・トーン調整まで含めたプロンプト設計。GPT・Claude・Geminiを目的に応じて使い分けます。</p>
+      </div>
+      <div class="vcard">
+        <div class="idx en">VALUE / 02</div>
+        <h3>SNS別フォーマット最適化</h3>
+        <p>Instagram・Facebookそれぞれの画像比率・カルーセル構成・文字量に自動で合わせ込む変換ロジックを実装します。</p>
+      </div>
+      <div class="vcard">
+        <div class="idx en">VALUE / 03</div>
+        <h3>運用基盤の構築</h3>
+        <p>予約投稿、承認フロー、複数アカウント管理、投稿履歴・エラーログまで。現場で安心して使える管理の仕組みを整えます。</p>
+      </div>
+      <div class="vcard">
+        <div class="idx en">VALUE / 04</div>
+        <h3>軽量・低コストな構成</h3>
+        <p>n8n / Make / GAS / Meta Graph APIなどを組み合わせ、過剰な開発をせず、保守しやすい運用コストに収めます。</p>
+      </div>
+      <div class="vcard">
+        <div class="idx en">VALUE / 05</div>
+        <h3>横展開を見据えた拡張設計</h3>
+        <p>将来的な複数クライアント運用を見越し、アカウント・テンプレートを切り替えられるマルチテナント構造で設計します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="schedule">
+  <div class="container">
+    <div class="sec-label en">PROCESS</div>
+    <h2 class="sec-title">進め方（想定スケジュール）</h2>
+    <p class="sec-desc">まずは小さく動かし、確認しながら育てていくアプローチを取ります。</p>
+
+    <div class="timeline">
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-head"><span class="phase en">PHASE 0 ・ 約1週間</span><h4>ヒアリング・要件整理</h4></div>
+        <p>対象メディア・SNSアカウント・投稿方針・既存ツールの確認を行い、最小構成（MVP）の範囲を確定します。</p>
+      </div>
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-head"><span class="phase en">PHASE 1 ・ 約2〜3週間</span><h4>MVP構築</h4></div>
+        <p>記事→文章生成→画像生成→Instagram／Facebookへの投稿までの一連のパイプラインを実装し、動作確認を行います。</p>
+      </div>
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-head"><span class="phase en">PHASE 2 ・ 約2〜3週間</span><h4>運用機能の拡張</h4></div>
+        <p>カルーセル投稿、予約投稿、承認フロー、複数アカウント管理、投稿履歴・エラー管理を順次追加します。</p>
+      </div>
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-head"><span class="phase en">PHASE 3 ・ 継続</span><h4>横展開・継続改善</h4></div>
+        <p>クライアント別運用への拡張、ダッシュボード化、他の自動化案件への応用など、継続的にご相談しながら育てます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="container">
+    <div class="sec-label en" style="text-align:center;">GET IN TOUCH</div>
+    <h2>まずは最小構成から、<br>一緒に動かしてみませんか。</h2>
+    <p class="lead">自己紹介・実績・推奨構成・概算費用など、ご応募要件に沿ってすぐにご回答可能です。お気軽にお声がけください。</p>
+    <a href="#" class="cta-btn en">Contact Kairos →</a>
+    <p class="closing-sub">ご質問・構成に関するご相談のみでも歓迎いたします。</p>
+  </div>
+</section>
+
+<footer>
+  <div class="en">KAIROS — Web制作・システム開発チーム</div>
+</footer>
+
+</body>
+</html>
